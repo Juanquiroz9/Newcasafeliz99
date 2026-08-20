@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "./contexts/AuthContext";
 
 const NAVY = "#1A2B4A";
 const GOLD = "#D4AF37";
@@ -73,6 +74,37 @@ export default function CasaFeliz() {
   ]);
   const [newMsg, setNewMsg] = useState("");
 
+  const {
+    configured: authConfigured,
+    user: authUser,
+    profile,
+    loading: authLoading,
+    error: authError,
+    clearError: clearAuthError,
+    signUp,
+    logIn,
+    logOut,
+    saveProfileFields,
+  } = useAuth();
+  const [fullNameInput, setFullNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [addressInput, setAddressInput] = useState("");
+  const [unitsInput, setUnitsInput] = useState(4);
+
+  const displayName = profile?.fullName || (userType === "landlord" ? "Juan Quiroz" : "Maria Garcia");
+
+  // Restore a signed-in session straight to the dashboard on app load.
+  useEffect(() => {
+    if (!authLoading && authUser && profile && screen === "welcome") {
+      setUserType(profile.userType);
+      setScreen("dashboard");
+    }
+  }, [authLoading, authUser, profile]);
+
   const T = {
     en: {
       welcome: "CasaFeliz", tagline: "Happy Tenants. Stress-Free Landlords.",
@@ -96,6 +128,8 @@ export default function CasaFeliz() {
       privWalls: "Privacy Walls",
       secPartners: "Security Partners",
       complete: "Complete Setup 🚀",
+      logIn: "Log In", alreadyHaveAccount: "Already have an account?",
+      logOut: "Log Out",
     },
     es: {
       welcome: "CasaFeliz", tagline: "Inquilinos Felices. Propietarios Sin Estrés.",
@@ -119,6 +153,8 @@ export default function CasaFeliz() {
       privWalls: "Muros de Privacidad",
       secPartners: "Socios de Seguridad",
       complete: "Completar Configuración 🚀",
+      logIn: "Iniciar Sesión", alreadyHaveAccount: "¿Ya tienes cuenta?",
+      logOut: "Cerrar Sesión",
     }
   };
 
@@ -196,11 +232,56 @@ export default function CasaFeliz() {
             onClick={() => { setUserType("tenant"); setScreen("register"); setStep(1); }}>
             👤 {t.isTenant} — {lang === "en" ? "Create Account" : "Crear Cuenta"}
           </button>
+          <button style={{ background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer", padding: 8, width: "100%" }}
+            onClick={() => { clearAuthError(); setScreen("login"); }}>
+            {t.alreadyHaveAccount} <span style={{ color: GOLD, fontWeight: 700 }}>{t.logIn}</span>
+          </button>
         </div>
+        {!authConfigured && (
+          <div style={{ marginTop: 16, background: "rgba(212,175,55,0.12)", border: `1px solid ${GOLD}`, borderRadius: 10, padding: 10, fontSize: 11, color: GOLD, maxWidth: 340, textAlign: "center" }}>
+            ⚠️ Firebase isn't configured yet — see FIREBASE_SETUP.md. Sign-up/login will not work until it is.
+          </div>
+        )}
         <div style={{ marginTop: 28, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
           {["🔒 256-bit Encrypted", "🛡️ Stripe Identity", "📱 2FA SMS", "🏦 Plaid"].map((b, i) => (
             <div key={i} style={{ background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 10px", fontSize: 11, color: "rgba(255,255,255,0.65)" }}>{b}</div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── LOG IN SCREEN ──────────────────────────────────────────────────────────
+  if (screen === "login") return (
+    <div style={s.app}>
+      <Header back={() => { clearAuthError(); setScreen("welcome"); }} />
+      <div style={s.body}>
+        <div style={s.card}>
+          <div style={s.title}>{t.logIn}</div>
+          {!authConfigured && (
+            <div style={{ background: "#FFF8E6", border: `1px solid ${GOLD}`, borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#8B6914" }}>
+              ⚠️ Firebase isn't configured yet — see FIREBASE_SETUP.md.
+            </div>
+          )}
+          {authError && (
+            <div style={{ background: "#FEE8E8", border: `1px solid ${RED}`, borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: RED }}>
+              {authError}
+            </div>
+          )}
+          <input style={s.inp} placeholder={t.email} type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} />
+          <input style={s.inp} placeholder={t.pass} type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} />
+          <button style={s.btn(GOLD, NAVY)} disabled={!authConfigured || authBusy} onClick={async () => {
+            setAuthBusy(true);
+            try {
+              await logIn(loginEmail, loginPassword);
+            } catch {
+              // error surfaced via authError
+            } finally {
+              setAuthBusy(false);
+            }
+          }}>
+            {authBusy ? "…" : t.logIn}
+          </button>
         </div>
       </div>
     </div>
@@ -307,11 +388,33 @@ export default function CasaFeliz() {
             </div>
 
             {step === 1 && <>
-              <input style={s.inp} placeholder={t.fullName} />
-              <input style={s.inp} placeholder={t.email} type="email" />
-              <input style={s.inp} placeholder={t.pass} type="password" />
+              {!authConfigured && (
+                <div style={{ background: "#FFF8E6", border: `1px solid ${GOLD}`, borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: "#8B6914" }}>
+                  ⚠️ Firebase isn't configured yet — see FIREBASE_SETUP.md.
+                </div>
+              )}
+              {authError && (
+                <div style={{ background: "#FEE8E8", border: `1px solid ${RED}`, borderRadius: 10, padding: 10, marginBottom: 12, fontSize: 12, color: RED }}>
+                  {authError}
+                </div>
+              )}
+              <input style={s.inp} placeholder={t.fullName} value={fullNameInput} onChange={e => setFullNameInput(e.target.value)} />
+              <input style={s.inp} placeholder={t.email} type="email" value={emailInput} onChange={e => setEmailInput(e.target.value)} />
+              <input style={s.inp} placeholder={t.pass} type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} />
               <div style={{ fontSize: 11, color: GRAY, marginBottom: 12 }}>🔒 {lang === "en" ? "AES-256 encrypted · Never stored in plain text" : "Cifrado AES-256 · Nunca almacenado en texto plano"}</div>
-              <button style={s.btn(GOLD, NAVY)} onClick={() => setStep(2)}>{t.cont}</button>
+              <button style={s.btn(GOLD, NAVY)} disabled={!authConfigured || authBusy} onClick={async () => {
+                setAuthBusy(true);
+                try {
+                  await signUp(fullNameInput, emailInput, passwordInput, userType);
+                  setStep(2);
+                } catch {
+                  // error surfaced via authError
+                } finally {
+                  setAuthBusy(false);
+                }
+              }}>
+                {authBusy ? "…" : t.cont}
+              </button>
             </>}
 
             {step === 2 && <>
@@ -388,16 +491,19 @@ export default function CasaFeliz() {
             </>}
 
             {step === 5 && userType === "landlord" && <>
-              <input style={s.inp} placeholder={t.address} />
-              <select style={{ ...s.inp, background: WHITE }}>
-                {[2, 3, 4, 5, 6, 8, 10].map(n => <option key={n}>{n} {lang === "en" ? "Units" : "Unidades"}</option>)}
+              <input style={s.inp} placeholder={t.address} value={addressInput} onChange={e => setAddressInput(e.target.value)} />
+              <select style={{ ...s.inp, background: WHITE }} value={unitsInput} onChange={e => setUnitsInput(Number(e.target.value))}>
+                {[2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n} {lang === "en" ? "Units" : "Unidades"}</option>)}
               </select>
               <div style={{ background: LIGHT, borderRadius: 12, padding: 14, marginBottom: 14 }}>
                 <div style={{ fontSize: 11, color: GRAY, marginBottom: 4 }}>{lang === "en" ? "Your Property Code" : "Tu Código de Propiedad"}</div>
                 <div style={{ fontSize: 24, fontWeight: 900, color: NAVY, letterSpacing: 3 }}>QP-2847</div>
                 <div style={{ fontSize: 11, color: GRAY }}>{lang === "en" ? "Share with tenants or generate QR codes" : "Comparte con inquilinos o genera códigos QR"}</div>
               </div>
-              <button style={s.btn(GOLD, NAVY)} onClick={() => setScreen("dashboard")}>{t.complete}</button>
+              <button style={s.btn(GOLD, NAVY)} onClick={async () => {
+                await saveProfileFields({ address: addressInput, unitsCount: unitsInput, propertyCode: "QP-2847" });
+                setScreen("dashboard");
+              }}>{t.complete}</button>
             </>}
           </div>
 
@@ -449,8 +555,8 @@ export default function CasaFeliz() {
         {tab === "dashboard" && userType === "landlord" && <>
           <div style={s.card}>
             <div style={{ fontSize: 13, color: GRAY }}>{lang === "en" ? "Welcome back," : "Bienvenido,"}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: NAVY }}>Juan Quiroz</div>
-            <div style={{ fontSize: 12, color: GRAY }}>Quiroz Properties LLC · Code: QP-2847</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: NAVY }}>{displayName}</div>
+            <div style={{ fontSize: 12, color: GRAY }}>{profile?.address || "Quiroz Properties LLC"} · Code: {profile?.propertyCode || "QP-2847"}</div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             {[
@@ -490,8 +596,8 @@ export default function CasaFeliz() {
         {tab === "dashboard" && userType === "tenant" && <>
           <div style={s.card}>
             <div style={{ fontSize: 13, color: GRAY }}>{lang === "en" ? "Welcome back," : "Bienvenida,"}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: NAVY }}>Maria Garcia</div>
-            <div style={{ fontSize: 12, color: GRAY }}>Unit 2 · QP-2847 · Quiroz Properties</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: NAVY }}>{displayName}</div>
+            <div style={{ fontSize: 12, color: GRAY }}>Unit 2 · {profile?.propertyCode || "QP-2847"} · Quiroz Properties</div>
           </div>
           <div style={s.card}>
             <div style={s.title}>{lang === "en" ? "Happiness Score" : "Puntuación de Felicidad"}</div>
@@ -690,6 +796,24 @@ export default function CasaFeliz() {
 
         {/* SECURITY TAB */}
         {tab === "security" && <>
+          {authUser && (
+            <div style={{ ...s.card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 11, color: GRAY }}>{lang === "en" ? "Signed in as" : "Sesión iniciada como"}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{authUser.email}</div>
+              </div>
+              <button style={{ padding: "8px 14px", background: "#FEE8E8", border: "none", borderRadius: 8, color: RED, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                onClick={async () => {
+                  await logOut();
+                  setScreen("welcome");
+                  setUserType(null);
+                  setStep(1);
+                  setTab("dashboard");
+                }}>
+                {t.logOut}
+              </button>
+            </div>
+          )}
           <div style={{ background: `linear-gradient(135deg,${NAVY},#2C4A7A)`, borderRadius: 16, padding: 24, marginBottom: 12, textAlign: "center" }}>
             <div style={{ fontSize: 44, marginBottom: 10 }}>🔒</div>
             <div style={{ color: GOLD, fontSize: 20, fontWeight: 800 }}>{lang === "en" ? "Bank-Level Security" : "Seguridad Bancaria"}</div>

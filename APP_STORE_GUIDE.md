@@ -8,10 +8,12 @@ icons and splash screens are already generated in both projects from
 
 ## Read this first: compliance risk
 
-CasaFeliz's UI currently name-drops real companies (Stripe, Plaid,
-Twilio, Auth0, Firebase) and simulates identity verification, bank
-connection, and rent payment — but none of it is real; see `PRIVACY.md`
-for exactly what the app does and doesn't do.
+CasaFeliz's UI name-drops real companies (Stripe, Plaid, Twilio, Auth0,
+Firebase) and simulates identity verification, bank connection, and rent
+payment. As of the Firebase Auth integration (see `FIREBASE_SETUP.md`),
+**account creation and login are real** — everything else (phone SMS,
+ID upload, bank connection, rent payment) is still simulated; see
+`PRIVACY.md` for exactly what the app does and doesn't do.
 
 This is very likely to cause problems in review, especially on Apple's
 App Store:

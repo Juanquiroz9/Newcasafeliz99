@@ -4,44 +4,56 @@ _Last updated: 2026-08-20_
 
 ## Summary
 
-CasaFeliz, as currently published, is a self-contained demo application.
-It runs entirely on your device. It does not have a backend server, does
-not create accounts, and does not transmit any data over the network.
+CasaFeliz uses Firebase (Google) for account creation and login. Your
+name, email address, and account type (landlord/tenant) are stored so
+you can log back in and see your own data. Everything else in the app —
+phone verification, ID upload, bank connection, rent payments, the
+tenant roster and messages — is currently a simulated demo and does not
+transmit real data anywhere.
 
-## What the app does
+## What we collect
 
-- All screens (registration, QR codes, messaging, payments, security)
-  operate on sample data held only in the app's in-memory state.
-- Nothing you type — name, email, phone number, ID photos, bank
-  selection — is saved, transmitted, or stored anywhere. It exists only
-  in the app's memory for the current session and is discarded when the
-  app closes.
-- Buttons referencing third-party services (Stripe, Plaid, Twilio,
-  Auth0, Firebase) simulate what those integrations would look like.
-  **No real connection to any of these services is made**, and no data
-  is sent to them.
+When you create an account:
 
-## Data collection
+- **Full name, email address, account type** — stored in our Firestore
+  database (via Firebase Authentication and Firestore, both operated by
+  Google) so you can log in again later.
+- **Password** — handled entirely by Firebase Authentication; we never
+  see or store your password ourselves.
+- **Property address and unit count** (landlords only, if entered) —
+  stored the same way.
 
-This app does not collect, store, or share any personal data, usage
-analytics, or device identifiers.
+Security rules on our database ensure only you can read or write your
+own account record — nobody else's account, including other
+landlords/tenants, can see it.
 
-## Third-party services
+## What we don't collect
 
-This app does not integrate with any third-party SDK, analytics
-platform, or advertising network.
+- Phone numbers you enter during "phone verification" are not sent
+  anywhere or stored — that step is simulated.
+- ID photos, bank account selections, and payment details shown in the
+  app are not real — nothing is uploaded, verified, or charged. Buttons
+  referencing Stripe, Plaid, and Twilio simulate what those integrations
+  would look like; **no real connection to any of these services is
+  made** at this time.
+- We do not use analytics or advertising SDKs, and do not sell or share
+  your data with third parties.
+
+## Data retention & deletion
+
+Your account record persists until you ask us to delete it. To request
+deletion, contact us at the email below.
 
 ## Children's privacy
 
-This app does not knowingly collect data from anyone, including
-children, because it does not collect data at all.
+CasaFeliz is not directed at children and we do not knowingly collect
+data from anyone under 13.
 
 ## Changes to this policy
 
-If CasaFeliz adds real backend functionality (real payments, identity
-verification, or account storage) in the future, this policy will be
-updated to reflect exactly what data is collected and how it is used
-before that functionality ships.
+If real payments, identity verification, or bank connections are added
+in the future, this policy will be updated to reflect exactly what data
+is collected and how it is used before that functionality ships.
 
 ## Contact
 
