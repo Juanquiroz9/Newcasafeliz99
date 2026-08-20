@@ -194,7 +194,7 @@ export default function CasaFeliz() {
           </button>
           <button style={{ ...s.btn("transparent", "rgba(255,255,255,0.6)"), border: "1.5px solid rgba(255,255,255,0.15)", fontSize: 13 }}
             onClick={() => { setUserType("tenant"); setScreen("register"); setStep(1); }}>
-            {t.isTenant} — {lang === "en" ? "Create Account" : "Crear Cuenta"}
+            👤 {t.isTenant} — {lang === "en" ? "Create Account" : "Crear Cuenta"}
           </button>
         </div>
         <div style={{ marginTop: 28, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
@@ -240,7 +240,7 @@ export default function CasaFeliz() {
           {[
             lang === "en" ? "Landlord generates unique QR for your unit" : "El propietario genera un QR único para tu unidad",
             lang === "en" ? "You scan it — app pre-fills your details" : "Escaneas — la app llena tus datos automáticamente",
-            lang === "en" ? "Verify identity + connect bank" : "Verifica identidad + conecta tu banco",
+            lang === "en" ? "Verify phone, ID + connect bank" : "Verifica teléfono, ID + conecta tu banco",
             lang === "en" ? "Instantly bonded to your landlord privately" : "Vinculado al propietario de forma privada",
             lang === "en" ? "Code expires after 7 days or first use" : "Código vence en 7 días o al primer uso",
           ].map((item, i) => (
@@ -739,7 +739,7 @@ export default function CasaFeliz() {
               <div>├── 👤 Unit 2 → <span style={{ color: GREEN }}>Juan only</span></div>
               <div>├── 👤 Unit 3 → <span style={{ color: GREEN }}>Juan only</span></div>
               <div>└── 👤 Unit 4 → <span style={{ color: GREEN }}>Juan only</span></div>
-              <div style={{ marginTop: 8, color: RED }}>Other Properties → <span style={{ fontWeight: 700 }}>INVISIBLE</span></div>
+              <div style={{ marginTop: 8, color: RED }}>Other Properties → <span style={{ fontWeight: 700 }}>INVISIBLE ✅</span></div>
             </div>
           </div>
         </>}
